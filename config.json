@@ -1,0 +1,7 @@
+{
+  "client_id": "your-client-id",
+  "client_secret": "your-client-secret",
+  "redirect_uri": "your-redirect-uri",
+  "auth_code_url": "your-auth-code-url",
+  "token_url": "your-token-url"
+}
