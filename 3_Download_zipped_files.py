@@ -78,30 +78,42 @@ if token_response.status_code == 200:
     print("All data saved to api_data_combined.json")
 
     # ----------------------
-    # Step 6: Download Files from Extract URLs
+    # Step 6: Download Only the Most Recent File per SchemaId
     # ----------------------
-    downloads_dir = "(path to store files)"
+    downloads_dir = "Downloads"
     os.makedirs(downloads_dir, exist_ok=True)
 
+    # Dictionary to store the latest object per SchemaId
+    latest_objects = {}
+
+    # Identify the most recent object per SchemaId
     for item in json_results:
         if 'Objects' in item:
             for obj in item['Objects']:
-                if 'DownloadLink' in obj:
-                    download_url = obj['DownloadLink']
-                    headers = {
-                        "Authorization": f"Bearer {access_token}"
-                    }
-                    download_response = requests.get(download_url, headers=headers, stream=True)
+                schema_id = obj["SchemaId"]
+                created_date = datetime.strptime(obj["CreatedDate"], "%Y-%m-%dT%H:%M:%S.%fZ")
 
-                    if download_response.status_code == 200:
-                        filename = os.path.join(downloads_dir, f"{obj['SchemaId']}.zip")
-                        with open(filename, 'wb') as file:
-                            for chunk in download_response.iter_content(chunk_size=8192):
-                                file.write(chunk)
-                        print(f"File downloaded successfully: {filename}")
-                    else:
-                        print(f"Failed to download file from {download_url}: {download_response.status_code} - {download_response.text}")
+                # Keep only the latest object per SchemaId
+                if schema_id not in latest_objects or created_date > latest_objects[schema_id]["CreatedDate"]:
+                    latest_objects[schema_id] = {"CreatedDate": created_date, "Object": obj}
 
+    # Download only the latest extract for each SchemaId
+    for schema_id, entry in latest_objects.items():
+        obj = entry["Object"]
+        download_url = obj["DownloadLink"]
+        headers = {
+            "Authorization": f"Bearer {access_token}"
+        }
+        download_response = requests.get(download_url, headers=headers, stream=True)
+
+        if download_response.status_code == 200:
+            filename = os.path.join(downloads_dir, f"{schema_id}.zip")
+            with open(filename, 'wb') as file:
+                for chunk in download_response.iter_content(chunk_size=8192):
+                    file.write(chunk)
+            print(f"File downloaded successfully: {filename}")
+        else:
+            print(f"Failed to download file from {download_url}: {download_response.status_code} - {download_response.text}")
     # ----------------------
     # Step 7: Extract Downloaded Files
     # ----------------------
