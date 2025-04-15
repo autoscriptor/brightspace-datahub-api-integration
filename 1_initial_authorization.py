@@ -10,7 +10,7 @@ import requests
 auth_url = "https://auth.brightspace.com/oauth2/auth"
 client_id = "your-client-id"
 client_secret = "your-client-secret"
-redirect_uri = "(your_redirect_URI)"  # Set this as your valid redirect URL
+redirect_uri = "https://<callbackserver>/callback.php"  # Set this as your valid redirect URL
 scopes = "core:*:* data:*:* datasets:*:*"
 auth_code_url = "(URL where you stored the authorization code)"
 
