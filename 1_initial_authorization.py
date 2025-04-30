@@ -3,16 +3,26 @@ import webbrowser
 import urllib.parse
 import time
 import requests
+import json
+import os
+
+# ----------------------
+# Step 0.1: Load the JSON config file
+# ----------------------
+
+config_file_path = os.path.join(os.path.dirname(__file__), "config.json")
+with open(config_file_path, "r", encoding="utf-8") as cf:
+    config = json.load(cf)
 
 # ----------------------
 # Step 1: Redirect to Brightspace Authorization URL
 # ----------------------
 auth_url = "https://auth.brightspace.com/oauth2/auth"
-client_id = "your-client-id"
-client_secret = "your-client-secret"
-redirect_uri = "https://<callbackserver>/callback.php"  # Set this as your valid redirect URL
+client_id = config["c_id"] 
+client_secret = config["c_secret"]
+redirect_uri = config["uri"]
 scopes = "data:*:* datasets:*:* reporting:*:*"
-auth_code_url = "(URL where you stored the authorization code)"
+auth_code_url = "https://alieldin.ca/auth_code.html"
 
 # Build the authorization URL
 authorization_url = (
@@ -27,7 +37,7 @@ webbrowser.open(authorization_url)
 # Step 2: Wait for Authorization Code to be Stored
 # ----------------------
 # Wait for a sufficient amount of time to ensure the user completes the authentication
-time.sleep(10)  # Adjust this if needed, depending on network speed or user interaction
+time.sleep(30)  # Adjust this if needed, depending on network speed or user interaction
 
 # ----------------------
 # Step 3: Retrieve Authorization Code from HTML file using urllib
@@ -43,7 +53,7 @@ try:
     with urllib.request.urlopen(req) as response:
         authorization_code = response.read().decode('utf-8').strip()  # Read the file contents and strip any newlines
         if authorization_code:
-            print(f"Authorization code retrieved: {authorization_code}")
+            print(f"Authorization code retrieved:") # {authorization_code}")
         else:
             print("Authorization code is empty. Please ensure the file contains the correct code.")
             exit(1)
@@ -72,8 +82,8 @@ token_response = requests.post(token_url, data=data)
 if token_response.status_code == 200:
     token = token_response.json().get("access_token")
     refresh_token = token_response.json().get("refresh_token")
-    print("Access token generated:", token)
-    print("Refresh token generated:", refresh_token)
+    print("Access token generated:") #, token)
+    print("Refresh token generated:") #, refresh_token)
 
     # Store the refresh token for future use
     with open('refresh_token.txt', 'w') as f:
@@ -82,7 +92,7 @@ if token_response.status_code == 200:
     # ----------------------
     # Step 5: Use the Access Token to Make an API Request
     # ----------------------
-    api_url = "(brightspace.server)/d2l/api/lp/1.47/dataExport/list"
+    api_url = "https://abbyschools.onlinelearningbc.com/d2l/api/lp/1.47/dataExport/list"
     headers = {
         "Authorization": f"Bearer {token}"
     }
